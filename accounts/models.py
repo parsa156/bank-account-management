@@ -1,12 +1,7 @@
 from django.db import models
 from customers.models import Customer
+from bank.models import Bank
 
-class Bank(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    phone_number = models.CharField(max_length=15 , blank=True , null=True)
-
-    def __str__(self):
-        return self.name 
 class BankAccount(models.Model):
     customer = models.ForeignKey(Customer, related_name='accounts', on_delete=models.CASCADE)
     bank = models.ForeignKey(Bank, related_name='accounts', on_delete=models.CASCADE)
