@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'accounts',
     'customers',
     'rest_framework',
+    'bank',
+    
     
 ]
 
