@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'customers',
     'rest_framework',
     'bank',
+    'rest_framework_simplejwt',
+    'authentication',
     
     
 ]
@@ -84,6 +86,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 
