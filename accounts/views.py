@@ -1,8 +1,11 @@
 from rest_framework import viewsets
-from .models import BankAccount 
-from .serializers import BankAccountSerializer 
-from rest_framework.permissions import IsAuthenticated
+from .models import BankAccount
+from .serializers import BankAccountSerializer, BankAccountPostSerializer
+
 class BankAccountViewSet(viewsets.ModelViewSet):
     queryset = BankAccount.objects.all()
-    serializer_class = BankAccountSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return BankAccountPostSerializer
+        return BankAccountSerializer
