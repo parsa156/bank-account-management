@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Bank
-from .serializers import BankSerializer
+from .serializers import BankSerializer , BankPostSerializer
 
 # List all Banks (GET)
 class BankListView(APIView):
@@ -15,7 +15,7 @@ class BankListView(APIView):
 # Create a Bank (POST)
 class BankCreateView(APIView):
     def post(self, request):
-        serializer = BankSerializer(data=request.data)
+        serializer = BankPostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
