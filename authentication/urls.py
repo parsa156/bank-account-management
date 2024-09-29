@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import RegisterView, LoginView
+from rest_framework.routers import DefaultRouter
+from .views import RegisterView
 
 urlpatterns = [
     path('signup/', RegisterView.as_view(), name='signup'),  
-    path('login/', LoginView.as_view(), name='login'),      
 ]
