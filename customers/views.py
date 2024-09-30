@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Customer
-from .serializers import CustomerSerializer ,CustomerPostSerializer
+from .serializers import CustomerSerializer
 
 # List all Customers (GET)
 class CustomerListView(APIView):
@@ -15,7 +15,7 @@ class CustomerListView(APIView):
 # Create a Customer (POST)
 class CustomerCreateView(APIView):
     def post(self, request):
-        serializer = CustomerPostSerializer(data=request.data)
+        serializer = CustomerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

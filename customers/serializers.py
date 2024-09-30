@@ -6,22 +6,14 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
 
-class CustomerPostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
-        fields = '__all__'
+    def update(self, instance, validated_data):
+        if 'first_name' in validated_data and instance.first_name != validated_data['first_name']:
+            raise serializers.ValidationError({"first_name": "You cannot change the first name after creation."})
 
-    def get_fields(self):
-        fields = super().get_fields()
-        request_method = self.context['request'].method
-        if request_method == 'POST':
-            fields['email'].read_only = False  
-            fields['first_name'].read_only = False  
-            fields['last_name'].read_only = False  
+        if 'last_name' in validated_data and instance.last_name != validated_data['last_name']:
+            raise serializers.ValidationError({"last_name": "You cannot change the last name after creation."})
 
-        else:
-            fields['email'].read_only = True
-            fields['first_name'].read_only = True  
-            fields['last_name'].read_only = True  
+        if 'email' in validated_data and instance.email != validated_data['email']:
+            raise serializers.ValidationError({"email": "You cannot change the email after creation."})
 
-        return fields
+        return super().update(instance, validated_data)
