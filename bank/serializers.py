@@ -6,16 +6,8 @@ class BankSerializer(serializers.ModelSerializer):
         model = Bank
         fields = '__all__'
 
-class BankPostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bank
-        fields = '__all__'
-
-    def get_fields(self):
-        fields = super().get_fields()
-        request_method = self.context['request'].method
-        if request_method == 'POST':
-            fields['name'].read_only = False  # Make 'name' editable during POST
-        else:
-            fields['name'].read_only = True
-        return fields
+    def update(self, instance, validated_data):
+        if 'name' in validated_data and instance.name != validated_data['name']:
+            raise serializers.ValidationError({"name": "You cannot change the name of the bank."})
+        
+        return super().update(instance, validated_data)

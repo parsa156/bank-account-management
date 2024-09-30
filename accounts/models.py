@@ -4,7 +4,7 @@ from bank.models import Bank
 
 class BankAccount(models.Model):
     customer = models.ForeignKey(Customer, related_name='accounts', editable=False, on_delete=models.CASCADE, blank=False, null=False)
-    bank = models.ForeignKey(Bank, related_name='accounts', editable=False, on_delete=models.CASCADE), blank=False, null=False
+    bank = models.ForeignKey(Bank, related_name='accounts', editable=False, on_delete=models.CASCADE, blank=False, null=False)
     account_number = models.CharField(max_length=30, unique=True, editable=False ,  blank=False, null=False)
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
