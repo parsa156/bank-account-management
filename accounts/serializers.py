@@ -6,21 +6,14 @@ class BankAccountSerializer(serializers.ModelSerializer):
         model = BankAccount
         fields = '__all__'
 
-class BankAccountPostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BankAccount
-        fields = '__all__'
+    def update(self, instance, validated_data):
+        if 'customer' in validated_data and instance.customer != validated_data['customer']:
+            raise serializers.ValidationError({"customer": "You cannot change the customer after the account is created."})
+        
+        if 'bank' in validated_data and instance.bank != validated_data['bank']:
+            raise serializers.ValidationError({"bank": "You cannot change the bank after the account is created."})
+        
+        if 'account_number' in validated_data and instance.account_number != validated_data['account_number']:
+            raise serializers.ValidationError({"account_number": "You cannot change the account number after creation."})
 
-    def get_fields(self):
-        fields = super().get_fields()
-        request_method = self.context['request'].method
-        if request_method == 'POST':
-            fields['customer'].read_only = False  
-            fields['bank'].read_only = False  
-            fields['account_number'].read_only = False  
-           
-        else:
-            fields['customer'].read_only = True  
-            fields['bank'].read_only = True  
-            fields['account_number'].read_only = True
-        return fields
+        return super().update(instance, validated_data)
