@@ -5,11 +5,13 @@ from django.contrib.auth import get_user_model
 from .serializers import RegisterSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 
 User = get_user_model()
+
 
 # Register a new user (POST)
 class RegisterView(APIView):
@@ -48,9 +50,12 @@ class LoginView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            # Generate refresh and access tokens
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if check_password(password, user.password):
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
