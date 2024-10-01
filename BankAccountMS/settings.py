@@ -102,6 +102,10 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,                
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 
 # Password validation

@@ -45,10 +45,10 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get("email")
+        username = request.data.get("username")
         password = request.data.get("password")
 
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(request, username=username, password=password)
         if user is not None:
             # Generate refresh and access tokens
             refresh = RefreshToken.for_user(user)
@@ -58,4 +58,4 @@ class LoginView(APIView):
                 "message": "Login successful"
             }, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
