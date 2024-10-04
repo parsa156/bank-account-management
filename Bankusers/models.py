@@ -11,15 +11,6 @@ class Person(models.Model):
     email = models.EmailField(unique=True, blank=False, null=False)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     
-    
-    def clean(self):
-        if not self.code_meli.isdigit() or len(self.code_meli) != 10:
-            raise ValidationError("Code Meli must be a 10-digit number.")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
-
     class Meta:
         abstract = True
 
