@@ -17,3 +17,9 @@ class BankAccountSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"account_number": "You cannot change the account number after creation."})
 
         return super().update(instance, validated_data)
+   
+   
+    def validate_transaction_password(self, value):
+        if len(value) != 4 or not value.isdigit():
+            raise serializers.ValidationError("Transaction password must be exactly 4 digits.")
+        return value
