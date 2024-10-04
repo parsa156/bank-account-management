@@ -11,6 +11,12 @@ class PersonSerializer(serializers.ModelSerializer):
         if not value.isdigit() or len(value) != 10:
             raise serializers.ValidationError("Code Meli must be exactly 10 digits and consist of numbers only.")
         return value
+    
+    def validate_code_meli(self, value):
+        # Ensure that code_meli is exactly 10 digits and numeric
+        if not value.isdigit() or len(value) != 10:
+            raise serializers.ValidationError("Code Meli must be exactly 10 digits and consist of numbers only.")
+        return value
 
     def update(self, instance, validated_data):
         if 'first_name' in validated_data and instance.first_name != validated_data['first_name']:
