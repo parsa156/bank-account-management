@@ -5,12 +5,6 @@ class PersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = None  
         fields = '__all__'
-
-    def validate_code_meli(self, value):
-        # Ensure that code_meli is  10 digits and numeric
-        if not value.isdigit() or len(value) != 10:
-            raise serializers.ValidationError("Code Meli must be exactly 10 digits and consist of numbers only.")
-        return value
     
     def validate_code_meli(self, value):
         # Ensure that code_meli is exactly 10 digits and numeric

@@ -6,11 +6,12 @@ from django.core.exceptions import ValidationError
 class Person(models.Model):
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
-    username = models.CharField(max_length=150, unique=True, blank=False, null=False)  # Username added
-    code_meli = models.CharField(max_length=10, unique=True, blank=False, null=False)  # National ID (code meli) added
+    username = models.CharField(max_length=150, unique=True, blank=False, null=False)  
+    code_meli = models.CharField(max_length=10, unique=True, blank=False, null=False)  
     email = models.EmailField(unique=True, blank=False, null=False)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    
+    password = models.CharField(max_length=20, blank=False, null=False)
+
     class Meta:
         abstract = True
 
