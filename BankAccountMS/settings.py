@@ -44,9 +44,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'bank',
     'rest_framework_simplejwt',
-    'authentication',
-    
-    
 ]
 
 MIDDLEWARE = [

@@ -21,11 +21,11 @@ class CustomerManager(BaseUserManager):
 class Customer(AbstractBaseUser):
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
-    username = models.CharField(max_length=150, unique=True, blank=False, null=False)  
-    code_meli = models.CharField(max_length=10, unique=True, blank=False, null=False)
+    username = models.CharField(max_length=150, unique=True, blank=False, null=False,default='default_user')  
+    code_meli = models.CharField(max_length=10, unique=True, blank=False, null=False,default="00000000")
     email = models.EmailField(unique=True, blank=False, null=False)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    password = models.CharField(max_length=20, blank=False, null=False)
+    password = models.CharField(max_length=20, blank=False, null=False,default="11111111")
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'code_meli']
@@ -34,23 +34,3 @@ class Customer(AbstractBaseUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-
-
-
-
-
-
-
-
-
-
-
-
-from django.db import models
-
-class Customer(models.Model):
-   
-    
-    def __str__(self):
-         return f"{self.first_name} {self.last_name}"
