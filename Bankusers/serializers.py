@@ -1,17 +1,21 @@
 from rest_framework import serializers
-from .models import Employee, Manager, Boss
+from .models import Employee, Manager, Boss, PendingEmployee
+from django.contrib.auth.hashers import make_password
 
 class PersonSerializer(serializers.ModelSerializer):
     class Meta:
-        model = None  
+        model = None
         fields = '__all__'
-    
+
     def validate_code_meli(self, value):
-        # Ensure that code_meli is exactly 10 digits and numeric
         if not value.isdigit() or len(value) != 10:
-            raise serializers.ValidationError("Code Meli must be exactly 10 digits and consist of numbers only.")
+            raise serializers.ValidationError("Code Meli must be exactly 10 digits and numeric.")
         return value
 
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
+    
     def update(self, instance, validated_data):
         if 'first_name' in validated_data and instance.first_name != validated_data['first_name']:
             raise serializers.ValidationError({"first_name": "You cannot change the first name after creation."})
@@ -25,9 +29,6 @@ class PersonSerializer(serializers.ModelSerializer):
         if 'code_meli' in validated_data and instance.code_meli != validated_data['code_meli']:
             raise serializers.ValidationError({"code_meli": "You cannot change the national ID (code meli) after creation."})
 
-        return super().update(instance, validated_data)
-
-# Specific serializers for Employee, Manager, Boss
 
 class EmployeeSerializer(PersonSerializer):
     class Meta:
@@ -43,3 +44,8 @@ class BossSerializer(PersonSerializer):
     class Meta:
         model = Boss
         fields = '__all__'
+
+class PendingEmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PendingEmployee
+        fields = ['first_name', 'last_name', 'code_meli', 'department_id']

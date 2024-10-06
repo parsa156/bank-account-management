@@ -25,8 +25,7 @@ class Customer(AbstractBaseUser):
     code_meli = models.CharField(max_length=10, unique=True, blank=False, null=False,default="00000000")
     email = models.EmailField(unique=True, blank=False, null=False)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    password = models.CharField(max_length=20, blank=False, null=False,default="11111111")
-
+    password = models.CharField(max_length=128, blank=False, null=False,default="11111111")
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'code_meli']
 

@@ -1,108 +1,52 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth.hashers import check_password
 from django.shortcuts import get_object_or_404
 from .models import Employee, Manager, Boss
-from .serializers import EmployeeSerializer, ManagerSerializer, BossSerializer
+from .serializers import EmployeeSerializer, ManagerSerializer, BossSerializer, EmployeeSignUpSerializer
 
-# Employee Views
-class EmployeeListView(APIView):
-    def get(self, request):
-        employees = Employee.objects.all()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
+# Login view for Boss and Manager
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        try:
+            user = Boss.objects.get(username=username)  # Change to Manager as needed
+            if check_password(password, user.password):
+                return Response({"message": "Login successful", "role": "boss"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+        except Boss.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+# Employee registration view
 class EmployeeCreateView(APIView):
     def post(self, request):
-        serializer = EmployeeSerializer(data=request.data)
+        serializer = EmployeeSignUpSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class EmployeeDetailView(APIView):
-    def get(self, request, pk):
-        employee = get_object_or_404(Employee, pk=pk)
-        serializer = EmployeeSerializer(employee)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        employee = get_object_or_404(Employee, pk=pk)
-        serializer = EmployeeSerializer(employee, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        employee = get_object_or_404(Employee, pk=pk)
-        employee.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Manager Views
-class ManagerListView(APIView):
+# Manager approval view for employees
+class WaitingEmployeeListView(APIView):
     def get(self, request):
-        managers = Manager.objects.all()
-        serializer = ManagerSerializer(managers, many=True)
+        # Only managers can see waiting employees
+        waiting_employees = Employee.objects.filter(is_approved=False)  # Assuming you add an 'is_approved' field
+        serializer = EmployeeSerializer(waiting_employees, many=True)
         return Response(serializer.data)
 
-class ManagerCreateView(APIView):
-    def post(self, request):
-        serializer = ManagerSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, pk):
+        # Manager approves or rejects the employee
+        employee = get_object_or_404(Employee, pk=pk)
+        action = request.data.get('action')  # 'approve' or 'reject'
 
-class ManagerDetailView(APIView):
-    def get(self, request, pk):
-        manager = get_object_or_404(Manager, pk=pk)
-        serializer = ManagerSerializer(manager)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        manager = get_object_or_404(Manager, pk=pk)
-        serializer = ManagerSerializer(manager, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        manager = get_object_or_404(Manager, pk=pk)
-        manager.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Boss Views
-class BossListView(APIView):
-    def get(self, request):
-        bosses = Boss.objects.all()
-        serializer = BossSerializer(bosses, many=True)
-        return Response(serializer.data)
-
-class BossCreateView(APIView):
-    def post(self, request):
-        serializer = BossSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class BossDetailView(APIView):
-    def get(self, request, pk):
-        boss = get_object_or_404(Boss, pk=pk)
-        serializer = BossSerializer(boss)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        boss = get_object_or_404(Boss, pk=pk)
-        serializer = BossSerializer(boss, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        boss = get_object_or_404(Boss, pk=pk)
-        boss.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if action == 'approve':
+            employee.is_approved = True
+            employee.save()
+            return Response({"message": "Employee approved"}, status=status.HTTP_200_OK)
+        elif action == 'reject':
+            employee.delete()
+            return Response({"message": "Employee rejected"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
