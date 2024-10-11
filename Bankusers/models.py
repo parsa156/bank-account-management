@@ -4,9 +4,14 @@ from django.core.exceptions import ValidationError
 from bank.models import Bank
 
 class PersonManager(BaseUserManager):
-    def create_user(self, username, password=None, **extra_fields):
+    def create_user(self, username, password=None, role=None, **extra_fields):
         if not username:
             raise ValueError('The Username must be set')
+        if role:
+            extra_fields['role'] = role
+        else:
+            raise ValueError('User role must be set')  # Ensure role is provided
+        
         user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -15,8 +20,7 @@ class PersonManager(BaseUserManager):
     def create_superuser(self, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(username, password, **extra_fields)
-
+        return self.create_user(username, password, role='Boss', **extra_fields)
 class Person(AbstractBaseUser):
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
@@ -48,10 +52,16 @@ class Employee(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='employees')
     job_title = models.CharField(max_length=50)
     hire_date = models.DateField()
+    def save(self, *args, **kwargs):
+        self.role = 'Employee'  
+        super().save(*args, **kwargs)
 
 class Manager(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='managers')
     department_location = models.CharField(max_length=100)
+    def save(self, *args, **kwargs):
+        self.role = 'Manager'  
+        super().save(*args, **kwargs)
 
 class Boss(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='bosses')

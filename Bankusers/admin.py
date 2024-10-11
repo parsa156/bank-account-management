@@ -13,5 +13,4 @@ class BossAdmin(admin.ModelAdmin):
         "email":"parsahashemian@gmail.com",
         "phone_number":"1234312311",
         "password":"parsa1234"
-
     }
