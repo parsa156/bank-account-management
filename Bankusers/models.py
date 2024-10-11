@@ -26,6 +26,12 @@ class Person(AbstractBaseUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     password = models.CharField(max_length=128, blank=False, null=False)
     is_staff = models.BooleanField(default=False)
+    ROLE_CHOICES = (
+        ('Employee', 'Employee'),
+        ('Manager', 'Manager'),
+        ('Boss', 'Boss'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='Employee')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'code_meli']
