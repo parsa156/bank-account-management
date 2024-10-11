@@ -52,6 +52,7 @@ class Employee(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='employees')
     job_title = models.CharField(max_length=50)
     hire_date = models.DateField()
+    department = models.CharField(max_length=50)
     def save(self, *args, **kwargs):
         self.role = 'Employee'  
         super().save(*args, **kwargs)
@@ -59,6 +60,7 @@ class Employee(Person):
 class Manager(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='managers')
     department_location = models.CharField(max_length=100)
+    department = models.CharField(max_length=50)
     def save(self, *args, **kwargs):
         self.role = 'Manager'  
         super().save(*args, **kwargs)
