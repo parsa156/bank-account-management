@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BankAccount
+from .models import BankAccount, Transaction
 
 class BankAccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,9 @@ class BankAccountSerializer(serializers.ModelSerializer):
         if len(value) != 4 or not value.isdigit():
             raise serializers.ValidationError("Transaction password must be exactly 4 digits.")
         return value
+    
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = '__all__'

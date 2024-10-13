@@ -1,7 +1,7 @@
 from django.db import models
 from customers.models import Customer
 from bank.models import Bank
-import random
+import random,string
 
 class BankAccount(models.Model):
     customer = models.ForeignKey(Customer, related_name='accounts', on_delete=models.CASCADE, blank=False, null=False)
@@ -33,3 +33,17 @@ class BankAccount(models.Model):
                 account_number += char
         return account_number
    
+class Transaction(models.Model):
+    sender = models.ForeignKey(BankAccount, related_name="sent_transactions", on_delete=models.CASCADE)
+    receiver = models.ForeignKey(BankAccount, related_name="received_transactions", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    tracking_code = models.CharField(max_length=15, unique=True, blank=False, null=False)
+    timestamp = models.DateTimeField(auto_now_add=True)  # Automatically save the date and time of the transaction
+
+    def generate_tracking_code(self):
+        return ''.join(random.choices(string.ascii_letters + string.digits + '@#$', k=8))
+
+    def save(self, *args, **kwargs):
+        if not self.tracking_code:
+            self.tracking_code = self.generate_tracking_code()
+        super().save(*args, **kwargs)
