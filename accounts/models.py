@@ -12,7 +12,7 @@ class BankAccount(models.Model):
 
     
     def __str__(self):
-        return f"{self.bank_name} - {self.account_number}"
+        return f"{self.bank} - {self.account_number}"
     
     
     def save(self, *args, **kwargs):

@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 
 # List all Bank Accounts (GET)
 class BankAccountListView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         accounts = BankAccount.objects.all()
         serializer = BankAccountSerializer(accounts, many=True)
@@ -17,6 +18,7 @@ class BankAccountListView(APIView):
 
 # Create a Bank Account (POST)
 class BankAccountCreateView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = BankAccountSerializer(data=request.data)
         if serializer.is_valid():
@@ -26,6 +28,7 @@ class BankAccountCreateView(APIView):
 
 # Retrieve, Update, Delete a Bank Account
 class BankAccountDetailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, pk):
         account = get_object_or_404(BankAccount, pk=pk)
         serializer = BankAccountSerializer(account)
@@ -45,6 +48,7 @@ class BankAccountDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 #Transfer Money
 class TransferMoneyView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         sender_account_number = request.data.get('sender_account_number')
         receiver_account_number = request.data.get('receiver_account_number')
@@ -86,6 +90,7 @@ class TransactionSearchView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+   
         user = request.user
         print(user)
         sender_account = BankAccount.objects.filter(customer=user)

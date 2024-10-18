@@ -15,6 +15,10 @@ class BankAccountSerializer(serializers.ModelSerializer):
         
         if 'account_number' in validated_data and instance.account_number != validated_data['account_number']:
             raise serializers.ValidationError({"account_number": "You cannot change the account number after creation."})
+        
+        if 'balance' in validated_data and instance.account_number != validated_data['balance']:
+            raise serializers.ValidationError({"balance": "You cannot change the account number after creation."})
+
 
         return super().update(instance, validated_data)
    

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth import login
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer
 from .models import Customer
@@ -31,6 +32,7 @@ class LoginView(APIView):
             return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if check_password(password, user.password):
+            login(request, user)
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
