@@ -8,5 +8,4 @@ urlpatterns = [
     path('transfer/', TransferMoneyView.as_view(), name='bankaccount-transfer'),  # transfer
     path('transactions/', TransactionSearchView.as_view(), name='transaction-search'),#history
 
-
 ]

@@ -57,14 +57,14 @@ class TransferMoneyView(APIView):
         sender_account = get_object_or_404(BankAccount, account_number=sender_account_number)
         receiver_account = get_object_or_404(BankAccount, account_number=receiver_account_number)
 
-        if sender_account.customer.transaction_password != transaction_password:
+        if sender_account.transaction_password != transaction_password:
             return Response({"error": "Invalid transaction password."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if sender_account.balance < float(amount):
+        if sender_account.balance < int(amount):
             return Response({"error": "Insufficient balance."}, status=status.HTTP_400_BAD_REQUEST)
 
-        sender_account.balance -= float(amount)
-        receiver_account.balance += float(amount)
+        sender_account.balance -= int(amount)
+        receiver_account.balance += int(amount)
         sender_account.save()
         receiver_account.save()
 
@@ -87,6 +87,7 @@ class TransactionSearchView(APIView):
 
     def get(self, request):
         user = request.user
+        print(user)
         sender_account = BankAccount.objects.filter(customer=user)
         queryset = Transaction.objects.filter(sender__in=sender_account)
 
