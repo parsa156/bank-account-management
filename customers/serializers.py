@@ -33,6 +33,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         if 'first_name' in validated_data and instance.first_name != validated_data['first_name']:
             raise serializers.ValidationError({"first_name": "You cannot change the first_name after registration."})
 
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
+            validated_data.pop('password')
+
         return super().update(instance, validated_data)
 
     def validate_code_meli(self, value):
