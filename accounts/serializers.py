@@ -5,6 +5,16 @@ class BankAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = BankAccount
         fields = '__all__'
+        extra_kwargs = {'account_number': {'required': False}}  # Make account_number optional
+
+    def validate(self, attrs):
+        if 'account_number' in attrs:
+            raise serializers.ValidationError({"account_number": "You cannot set the account number manually."})
+        return attrs
+
+
+    def create(self, validated_data):
+        return BankAccount.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         if 'customer' in validated_data and instance.customer != validated_data['customer']:
@@ -12,11 +22,11 @@ class BankAccountSerializer(serializers.ModelSerializer):
         
         if 'bank' in validated_data and instance.bank != validated_data['bank']:
             raise serializers.ValidationError({"bank": "You cannot change the bank after the account is created."})
-        
+      
         if 'account_number' in validated_data and instance.account_number != validated_data['account_number']:
             raise serializers.ValidationError({"account_number": "You cannot change the account number after creation."})
-        
-        if 'balance' in validated_data and instance.account_number != validated_data['balance']:
+                
+        if 'balance' in validated_data and instance.balance != validated_data['balance']:
             raise serializers.ValidationError({"balance": "You cannot change the account number after creation."})
 
 
