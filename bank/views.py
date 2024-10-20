@@ -21,7 +21,7 @@ class BankCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Retrieve, Update, Delete a Bank
+# Get, Update, Delete a Bank
 class BankDetailView(APIView):
     def get(self, request, pk):
         bank = get_object_or_404(Bank, pk=pk)

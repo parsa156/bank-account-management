@@ -11,8 +11,10 @@ from rest_framework.permissions import IsAuthenticated
 # List all Bank Accounts (GET)
 class BankAccountListView(APIView):
     permission_classes = [IsAuthenticated]
+    
     def get(self, request):
-        accounts = BankAccount.objects.all()
+        user = request.user
+        accounts = BankAccount.objects.filter(customer=user)
         serializer = BankAccountSerializer(accounts, many=True)
         return Response(serializer.data)
 
@@ -92,7 +94,6 @@ class TransactionSearchView(APIView):
     def get(self, request):
    
         user = request.user
-        print(user)
         sender_account = BankAccount.objects.filter(customer=user)
         queryset = Transaction.objects.filter(sender__in=sender_account)
 
