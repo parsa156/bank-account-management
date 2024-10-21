@@ -109,38 +109,52 @@ class TransferMoneyView(APIView):
 
 
 class TransactionSearchView(APIView):
+    
     permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        # Store the filter conditions from the POST request
+        conditions = request.data.get('conditions', {})
+
+        # If no conditions are provided, set to None
+        request.session['filter_conditions'] = conditions if conditions else None
+        return Response({"message": "Filter conditions have been set."}, status=status.HTTP_200_OK)
+
     def get(self, request):
-   
         user = request.user
         sender_account = BankAccount.objects.filter(customer=user)
-        queryset = Transaction.objects.filter(sender__in=sender_account)
 
-        # Filters
-        tracking_code = request.query_params.get('tracking_code')
-        min_amount = request.query_params.get('min_amount')
-        max_amount = request.query_params.get('max_amount')
-        exact_amount = request.query_params.get('exact_amount')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
+        # Step 1: Start with the latest transactions first
+        queryset = Transaction.objects.filter(sender__in=sender_account).order_by('-timestamp')
 
-        if tracking_code:
-            queryset = queryset.filter(tracking_code=tracking_code)
-        if min_amount:
-            queryset = queryset.filter(amount__gte=min_amount)
-        if max_amount:
-            queryset = queryset.filter(amount__lte=max_amount)
-        if exact_amount:
-            queryset = queryset.filter(amount=exact_amount)
-        if start_date and end_date:
-            try:
-                start_date = datetime.strptime(start_date, '%Y-%m-%d')
-                end_date = datetime.strptime(end_date, '%Y-%m-%d')
-                queryset = queryset.filter(timestamp__range=(start_date, end_date))
-            except ValueError:
-                return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+        # Step 2: Check for conditions from the session
+        conditions = request.session.get('filter_conditions')
 
-        # If no filter applied, return all transactions
+        # Step 3: Apply filters if conditions exist
+        if conditions:
+            tracking_code = conditions.get('tracking_code')
+            min_amount = conditions.get('min_amount')
+            max_amount = conditions.get('max_amount')
+            exact_amount = conditions.get('exact_amount')
+            start_date = conditions.get('start_date')
+            end_date = conditions.get('end_date')
+
+            if tracking_code:
+                queryset = queryset.filter(tracking_code=tracking_code)
+            if min_amount:
+                queryset = queryset.filter(amount__gte=min_amount)
+            if max_amount:
+                queryset = queryset.filter(amount__lte=max_amount)
+            if exact_amount:
+                queryset = queryset.filter(amount=exact_amount)
+            if start_date and end_date:
+                try:
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d')
+                    end_date = datetime.strptime(end_date, '%Y-%m-%d')
+                    queryset = queryset.filter(timestamp__range=(start_date, end_date))
+                except ValueError:
+                    return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Final result with the latest-first ordering maintained
         serializer = TransactionSerializer(queryset, many=True)
         return Response(serializer.data)
