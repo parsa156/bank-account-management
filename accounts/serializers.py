@@ -6,7 +6,14 @@ class BankAccountSerializer(serializers.ModelSerializer):
         model = BankAccount
         fields = '__all__'
         extra_kwargs = {'account_number': {'required': False}}  # Make account_number optional
-
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Mask the transaction password in the response
+        representation['transaction_password'] = '****'  # Or use a custom masked format
+        return representation
+    
+    
     def validate(self, attrs):
         if 'account_number' in attrs:
             raise serializers.ValidationError({"account_number": "You cannot set the account number manually."})
@@ -43,3 +50,9 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = '__all__'
+      
+      
+    def validate(self, attrs):
+        if 'tracking_code' in attrs:
+            raise serializers.ValidationError({"tracking_code": "You cannot set the Tracking code manually."})
+        return attrs

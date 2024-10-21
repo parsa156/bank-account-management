@@ -83,7 +83,7 @@ class TransferMoneyView(APIView):
         sender_account = get_object_or_404(BankAccount, account_number=sender_account_number)
         receiver_account = get_object_or_404(BankAccount, account_number=receiver_account_number)
 
-        if sender_account.transaction_password != transaction_password:
+        if not sender_account.check_transaction_password(transaction_password):
             return Response({"error": "Invalid transaction password."}, status=status.HTTP_401_UNAUTHORIZED)
 
         if sender_account.balance < int(amount):
