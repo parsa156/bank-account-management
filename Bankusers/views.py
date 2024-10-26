@@ -5,8 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Employee, Manager, Boss, PendingEmployee
-from customers.models import Customer
-from .serializers import EmployeeSerializer, ManagerSerializer, BossSerializer, PendingEmployeeSerializer
+from .serializers import EmployeeSerializer, ManagerSerializer, PendingEmployeeSerializer
 from django.shortcuts import get_object_or_404
 
 # Boss Creates Manager
@@ -14,8 +13,9 @@ class BossCreateManagerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not hasattr(request.user, 'boss'):
-            return Response({'error': 'Only a Boss can create a Manager.'}, status=status.HTTP_403_FORBIDDEN)
+        user = request.user
+        if user.role != 'Boss':
+            return Response({'error': 'Only d Boss can create a Manager.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = ManagerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
