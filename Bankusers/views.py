@@ -36,7 +36,8 @@ class PendingEmployeeListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not hasattr(request.user, 'boss') and not hasattr(request.user, 'manager'):
+        user = request.user
+        if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Only Managers or Bosses can view pending employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employees = PendingEmployee.objects.filter(is_accepted=False)
         serializer = PendingEmployeeSerializer(pending_employees, many=True)
@@ -46,7 +47,8 @@ class ApproveEmployeeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        if not hasattr(request.user, 'boss') and not hasattr(request.user, 'manager'):
+        user = request.user
+        if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Only Managers or Bosses can approve employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employee = get_object_or_404(PendingEmployee, pk=pk)
         data = {
@@ -71,7 +73,8 @@ class DeletePendingEmployeeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, pk):
-        if not hasattr(request.user, 'boss') and not hasattr(request.user, 'manager'):
+        user = request.user
+        if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Only Managers or Bosses can delete pending employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employee = get_object_or_404(PendingEmployee, pk=pk)
         pending_employee.delete()
@@ -118,7 +121,8 @@ class BossDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not hasattr(request.user, 'boss'):
+        user = request.user
+        if user.role != 'Boss':
             return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
 
         managers = Manager.objects.filter(bank=request.user.bank).order_by('department_id')
@@ -134,7 +138,8 @@ class ManagerDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not hasattr(request.user, 'manager'):
+        user = request.user
+        if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
 
         employees = Employee.objects.filter(bank=request.user.bank).order_by('department_id')
@@ -146,7 +151,8 @@ class EmployeeDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not hasattr(request.user, 'employee'):
+        user = request.user
+        if user.role != 'Employee':
             return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
         
         # Only employees-related data can be shown here

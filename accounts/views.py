@@ -70,7 +70,6 @@ class BankAccountDetailView(APIView):
         )
 #Transfer Money
 class TransferMoneyView(APIView):
-    permission_classes = [IsAuthenticated]
     def post(self, request):
         sender_account_number = request.data.get('sender_account_number')
         receiver_account_number = request.data.get('receiver_account_number')
@@ -124,13 +123,10 @@ class TransactionSearchView(APIView):
         user = request.user
         sender_account = BankAccount.objects.filter(customer=user)
 
-        # Step 1: Start with the latest transactions first
         queryset = Transaction.objects.filter(sender__in=sender_account).order_by('-timestamp')
 
-        # Step 2: Check for conditions from the session
         conditions = request.session.get('filter_conditions')
 
-        # Step 3: Apply filters if conditions exist
         if conditions:
             tracking_code = conditions.get('tracking_code')
             min_amount = conditions.get('min_amount')
@@ -155,6 +151,5 @@ class TransactionSearchView(APIView):
                 except ValueError:
                     return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Final result with the latest-first ordering maintained
         serializer = TransactionSerializer(queryset, many=True)
         return Response(serializer.data)
