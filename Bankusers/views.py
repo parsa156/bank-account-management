@@ -48,6 +48,7 @@ class ApproveEmployeeView(APIView):
 
     def post(self, request, pk):
         user = request.user
+        bank_id = user.bank.id
         if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Only Managers or Bosses can approve employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employee = get_object_or_404(PendingEmployee, pk=pk)
@@ -57,9 +58,9 @@ class ApproveEmployeeView(APIView):
             'username': pending_employee.username,
             'code_meli': pending_employee.code_meli,
             'email': pending_employee.email,
-            'bank': request.user.bank,
+            'bank': bank_id,
             'job_title': pending_employee.job_title,
-            'hire_date': pending_employee.hire_date
+            'password':pending_employee.password
         }
         employee_serializer = EmployeeSerializer(data=data)
         if employee_serializer.is_valid():

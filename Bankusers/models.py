@@ -51,7 +51,6 @@ class Person(AbstractBaseUser):
 class Employee(Person):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='employees')
     job_title = models.CharField(max_length=50)
-    hire_date = models.DateField()
     department_id = models.CharField(max_length=50, blank=True, null=True)  
     def save(self, *args, **kwargs):
         self.role = 'Employee'  
@@ -77,5 +76,7 @@ class PendingEmployee(models.Model):
     email = models.EmailField(unique=True, blank=False, null=False)
     department_id = models.CharField(max_length=50, blank=True, null=True)
     job_title = models.CharField(max_length=50)
-    hire_date = models.DateField()
     is_accepted = models.BooleanField(default=False)
+    password = models.CharField(max_length=128, blank=False, null=False,default="12345678")
+    bank = models.ForeignKey(Bank, on_delete=models.CASCADE,default="meli")
+
