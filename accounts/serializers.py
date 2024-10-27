@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from .models import BankAccount, Transaction
+from customers.models import Customer
 
 class BankAccountSerializer(serializers.ModelSerializer):
+  
+    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), source='customer', write_only=True)
+
     class Meta:
         model = BankAccount
         fields = '__all__'

@@ -2,30 +2,83 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .models import BankAccount,Transaction
+from .models import BankAccount,Transaction,Customer
 from .serializers import BankAccountSerializer , TransactionSerializer
 from datetime import datetime
 from rest_framework.permissions import IsAuthenticated
 
 
+
 # List all Bank Accounts (GET)
 class BankAccountListView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
+    def post(self, request):
+        # Check if the user has a role and is authorized to set a customer ID
+        if hasattr(request.user, 'role') :
+            customer_id = request.data.get('customer_id')
+            if not customer_id:
+                return Response({"error": "Customer ID must be provided."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify that the customer exists
+            try:
+                Customer.objects.get(pk=customer_id)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            request.session['customer_id'] = customer_id
+            return Response({"message": "Customer ID has been set."}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "Permission denied. Only authorized roles can set a customer ID."}, status=status.HTTP_403_FORBIDDEN)
+
     def get(self, request):
         user = request.user
-        accounts = BankAccount.objects.filter(customer=user)
+
+        if hasattr(user, 'role'):
+            customer_id = request.session.get('customer_id')
+            if not customer_id:
+                return Response({"error": "Customer ID is not set. Please use the POST method to set it first."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                customer = Customer.objects.get(pk=customer_id)
+                accounts = BankAccount.objects.filter(customer=customer)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            accounts = BankAccount.objects.filter(customer=user)
+
         serializer = BankAccountSerializer(accounts, many=True)
         return Response(serializer.data)
 
 # Create a Bank Account (POST)
 class BankAccountCreateView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        serializer = BankAccountSerializer(data=request.data)
+        if not hasattr(request.user, 'role'):
+            return Response({"error": "Access denied: User must have a role attribute."}, status=status.HTTP_403_FORBIDDEN)
+        # Retrieve customer_id from the request data
+        customer_id = request.data.get('customer_id')
+        if not customer_id:
+            return Response({"error": "Customer ID must be provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify that the customer exists
+        try:
+            customer = Customer.objects.get(pk=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Add the customer to the request data for the serializer
+        data = request.data.copy()
+        data['customer'] = customer.id
+
+        serializer = BankAccountSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Retrieve, Update, Delete a Bank Account
