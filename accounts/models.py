@@ -1,5 +1,5 @@
 from django.db import models
-from customers.models import Customer
+from Bankusers.models import Customer
 from bank.models import Bank
 import random,string
 from django.contrib.auth.hashers import make_password, check_password

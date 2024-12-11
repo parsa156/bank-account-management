@@ -16,7 +16,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "User registered successfully"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -59,4 +59,4 @@ class UserDetailView(APIView):
     def delete(self, request):
         user = request.user
         user.delete()
-        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)

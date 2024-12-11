@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BossCreateManagerView, EmployeeSignupView, PendingEmployeeListView, ApproveEmployeeView, DeletePendingEmployeeView, CustomLoginView, ManagerDashboardView,BossDashboardView
+from .views import BossCreateManagerView, EmployeeSignupView, PendingEmployeeListView, ApproveEmployeeView, DeletePendingEmployeeView, CustomLoginView, ManagerDashboardView, BossDashboardView, CustomerSignupView, UserDetailView
 urlpatterns = [
     path('boss/create-manager', BossCreateManagerView.as_view(), name='boss-create-manager'),
     path('employee/signup', EmployeeSignupView.as_view(), name='employee-signup'),
@@ -9,4 +9,6 @@ urlpatterns = [
     path('login', CustomLoginView.as_view(), name='login'),
     path('manager/dashboard', ManagerDashboardView.as_view(), name='manager-dashboard'),
     path('boss/dashboard', BossDashboardView.as_view(), name='boss-dashboard'),
+    path('customer/signup', CustomerSignupView.as_view(), name='signup'),
+    path('profile', UserDetailView.as_view(), name='user-detail'),
 ]

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Bank
 from .serializers import BankSerializer 
+from rest_framework.permissions import  AllowAny
 
 # List all Banks (GET)
 class BankListView(APIView):
@@ -14,11 +15,12 @@ class BankListView(APIView):
 
 # Create a Bank (POST)
 class BankCreateView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = BankSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Get, Update, Delete a Bank
@@ -39,4 +41,4 @@ class BankDetailView(APIView):
     def delete(self, request, pk):
         bank = get_object_or_404(Bank, pk=pk)
         bank.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)

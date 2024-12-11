@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from .models import BankAccount, Transaction
-from customers.models import Customer
+from Bankusers.models import Customer
 
 class BankAccountSerializer(serializers.ModelSerializer):
-  
+    
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), source='customer', write_only=True)
 
     class Meta:
@@ -13,7 +13,6 @@ class BankAccountSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        # Mask the transaction password in the response
         representation['transaction_password'] = '****'  # Or use a custom masked format
         return representation
     

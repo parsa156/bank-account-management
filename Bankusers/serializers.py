@@ -1,10 +1,13 @@
 from rest_framework import serializers
-from .models import Employee, Manager, Boss, PendingEmployee
+from .models import Employee, Manager, Boss, PendingEmployee , Customer
 from django.contrib.auth.hashers import make_password
 
 class PersonSerializer(serializers.ModelSerializer):
+    
+    password = serializers.CharField(write_only=True)  
+
     class Meta:
-        model = None
+        model = None    
         fields = '__all__'
 
     def validate_code_meli(self, value):
@@ -28,22 +31,47 @@ class PersonSerializer(serializers.ModelSerializer):
 
         if 'code_meli' in validated_data and instance.code_meli != validated_data['code_meli']:
             raise serializers.ValidationError({"code_meli": "You cannot change the national ID (code meli) after creation."})
-
-
+        
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+        
+        return super().update(instance, validated_data)
+class Customerserializers(PersonSerializer):
+    class Meta:
+        model= Customer
+        fields= '__all__'
+    def create(self, validated_data):
+        validated_data['role'] = 'Customer'  
+        return super().create(validated_data)
+    
+    
+    
 class EmployeeSerializer(PersonSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
+    def create(self, validated_data):
+        validated_data['role'] = 'Employee'  
+        return super().create(validated_data)
+    
+       
 
 class ManagerSerializer(PersonSerializer):
     class Meta:
         model = Manager
         fields = '__all__'
+    def create(self, validated_data):
+        validated_data['role'] = 'Manager'  
+        return super().create(validated_data)
 
 class BossSerializer(PersonSerializer):
     class Meta:
         model = Boss
         fields = '__all__'
+
+    def create(self, validated_data):
+        validated_data['role'] = 'Boss'  
+        return super().create(validated_data)
 
 class PendingEmployeeSerializer(serializers.ModelSerializer):
     class Meta:

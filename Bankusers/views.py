@@ -1,11 +1,11 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , AllowAny
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Employee, Manager, Boss, PendingEmployee
-from .serializers import EmployeeSerializer, ManagerSerializer, PendingEmployeeSerializer
+from .models import Employee, Manager, Boss, PendingEmployee,Person , Customer
+from .serializers import EmployeeSerializer, ManagerSerializer, PendingEmployeeSerializer, Customerserializers, BossSerializer
 from django.shortcuts import get_object_or_404
 
 # Boss Creates Manager
@@ -19,7 +19,7 @@ class BossCreateManagerView(APIView):
         serializer = ManagerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Employee Signup
@@ -28,7 +28,7 @@ class EmployeeSignupView(APIView):
         serializer = PendingEmployeeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()  # Save to the pending table
-            return Response({'detail': 'Employee submitted for approval.'}, status=status.HTTP_201_CREATED)
+            return Response({'detail': 'Employee submitted for approval.'}, status=status.HTTP_200)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Manager and Boss approve or delete pending employees
@@ -48,7 +48,8 @@ class ApproveEmployeeView(APIView):
 
     def post(self, request, pk):
         user = request.user
-        bank_id = user.bank.id
+        boss = Boss.objects.get(id=user.id)
+        bank_id = boss.bank.id
         if user.role != 'Boss' and user.role !='Manager':
             return Response({'error': 'Only Managers or Bosses can approve employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employee = get_object_or_404(PendingEmployee, pk=pk)
@@ -67,7 +68,7 @@ class ApproveEmployeeView(APIView):
             employee_serializer.save()
             pending_employee.is_accepted = True
             pending_employee.save()
-            return Response({'detail': 'Employee approved and added to employees.'}, status=status.HTTP_201_CREATED)
+            return Response({'detail': 'Employee approved and added to employees.'}, status=status.HTTP_200_OK)
         return Response(employee_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DeletePendingEmployeeView(APIView):
@@ -79,7 +80,7 @@ class DeletePendingEmployeeView(APIView):
             return Response({'error': 'Only Managers or Bosses can delete pending employees.'}, status=status.HTTP_403_FORBIDDEN)
         pending_employee = get_object_or_404(PendingEmployee, pk=pk)
         pending_employee.delete()
-        return Response({'detail': 'Pending employee deleted.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'detail': 'Pending employee deleted.'}, status=status.HTTP_200_OK)
 #Login
 class CustomLoginView(APIView):
     def post(self, request):
@@ -90,19 +91,10 @@ class CustomLoginView(APIView):
         user = None
         role = None
 
-        try:
-            user = Boss.objects.get(username=username)
-            role = 'Boss'
-        except Boss.DoesNotExist:
-            try:
-                user = Manager.objects.get(username=username)
-                role = 'Manager'
-            except Manager.DoesNotExist:
-                try:
-                    user = Employee.objects.get(username=username)
-                    role = 'Employee'
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Invalid username or password.'}, status=status.HTTP_400_BAD_REQUEST)
+        if Person.objects.filter(username=username).exists():
+            user = Person.objects.get(username=username)
+        else:
+            return Response({'error': 'Invalid username or password.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check the password manually
         if user and check_password(password, user.password):
@@ -125,37 +117,97 @@ class BossDashboardView(APIView):
         user = request.user
         if user.role != 'Boss':
             return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
-
-        managers = Manager.objects.filter(bank=request.user.bank).order_by('department_id')
-        employees = Employee.objects.filter(bank=request.user.bank).order_by('department_id')
+        boss = Boss.objects.get(id=user.id)
+        managers = Manager.objects.filter(bank=boss.bank).order_by('department_id')
+        employees = Employee.objects.filter(bank=boss.bank).order_by('department_id')
+        #accounts = Customer.objects.filter(bank=boss.bank)
 
         manager_data = ManagerSerializer(managers, many=True).data
         employee_data = EmployeeSerializer(employees, many=True).data
+        #customer_data = Customerserializers(customers,many=True).data
 
         return Response({'managers': manager_data, 'employees': employee_data}, status=status.HTTP_200_OK)
 
 # Manager dashboard: view all employees
 class ManagerDashboardView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
-        user = request.user
-        if user.role != 'Boss' and user.role !='Manager':
-            return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            user = request.user
+            if user.role !='Manager':
+                return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
+            manager=Manager.objects.get(id=user.id)
+            employee = Employee.objects.filter(bank=manager.bank ,department_id=manager.department_id)
+            employee_data = EmployeeSerializer(employee, many=True).data
+            return Response({'employees': employee_data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        employees = Employee.objects.filter(bank=request.user.bank).order_by('department_id')
-        employee_data = EmployeeSerializer(employees, many=True).data
-        return Response({'employees': employee_data}, status=status.HTTP_200_OK)
+class CustomerSignupView(APIView):
+    permission_classes = [AllowAny]
 
-# Employee dashboard
-class EmployeeDashboardView(APIView):
+    def post(self, request):
+        serializer = Customerserializers(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"message": "User registered successfully"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        if user.role != 'Employee':
-            return Response({'error': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
-        
-        # Only employees-related data can be shown here
-        return Response({'detail': 'Employee dashboard content'}, status=status.HTTP_200_OK)
 
+    def get(self, request):
+        user=request.user
+        id = user.id
+        role = user.role
+        match role:
+            case _ if role == 'Customers':
+                customer = Customer.objects.get(id=id)
+                serializer = Customerserializers(customer)
+            case _ if role == 'Employee':
+                employee = Employee.objects.get(id=id)
+                serializer = EmployeeSerializer(employee)   
+            case _ if role == 'Manager':
+                manager = Manager.objects.get(id=id)
+                serializer = ManagerSerializer(manager) 
+            case _ if role == 'Boss':
+                boss = Boss.objects.get(id=id)
+                serializer = BossSerializer(boss)       
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        id = user.id
+        role = user.role
+        
+        try:
+            match role:
+                case 'Customer':  # Make sure this matches your ROLE_CHOICES
+                    customer = Customer.objects.get(id=id)
+                    serializer = Customerserializers(customer, data=request.data, partial=True)
+                case 'Employee':
+                    employee = Employee.objects.get(id=id)
+                    serializer = EmployeeSerializer(employee, data=request.data, partial=True)
+                case 'Manager':
+                    manager = Manager.objects.get(id=id)
+                    serializer = ManagerSerializer(manager, data=request.data, partial=True)
+                case 'Boss':
+                    boss = Boss.objects.get(id=id)
+                    serializer = BossSerializer(boss, data=request.data, partial=True)
+                case _:
+                    return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "User updated successfully"})
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Person.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)
